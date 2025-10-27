@@ -1,0 +1,40 @@
+<?php
+
+return [
+    'no_token_provided' => 'トークンが提供されていません',
+    'invalid_or_expired_token' => 'トークンが無効または期限切れです',
+    'account_locked' => "複数回ログインに失敗したのでアカウントをロックしました。\n"
+        . '暫く経ってからお試しいただくか、施設の管理者にロック解除を依頼してください。',
+    'login_success' => 'ログインに成功しました',
+    'login_failed' => 'メールアドレスまたはパスワードが違います',
+    'login_failed_multiple_times' => 'パスワードをお忘れの場合は、『パスワードを忘れた方』ボタンから再設定を行ってください。',
+    'user_not_found' => 'ユーザーが見つかりません',
+    'user_id_or_email_incorrect' => 'ユーザーIDまたはメールアドレスが正しくありません。',
+    'invalid_role' => 'Error! Invalid role',
+    'invalid_change_password' => 'エラー！パスワードの変更が無効です',
+    'current_password_incorrect' => '現在のパスワードが正しくありません。',
+    'unauthorized' => 'ユーザーはこのアクションを実行する権限がありません',
+    'email_invited' => '招待中のメールアドレスです',
+    'shift' => [
+        'invalid_user' => '無効なユーザー',
+        'invalid_contract' => 'ユーザーに有効な契約がありません',
+        'both_shift_type_and_status' => 'shift_type_id と status を同時に選択することはできません。',
+        'duplicate_user_shift' => 'この日付のシフトはすでにユーザーに設定されています',
+    ],
+    'model_not_found' => 'モデルが見つかりません',
+    'notification_dashboard' => [
+        'accepted' => ':dateの出勤依頼を承諾しました。',
+        'canceled_by_manager' => ':dateは出勤取り消しになりました。',
+        'update_shift_type' => ':dateは:shift_typeになりました。',
+        'day_off' => ':dateは希望休になりました。',
+        'paid_leave' => ':dateは有給になりました。',
+        'request_received' => ':dateの出勤依頼が届きました。',
+        'request_rejected' => ':dateの出勤依頼を拒否しました。',
+        'request_cancelled' => ':dateの出勤依頼が取り消されました。',
+        'sent_request' => ':nameさんへ:dateの出勤依頼を出しました。',
+        'cancelled_request' => ':nameさんへの:dateの出勤依頼を取り消しました。',
+        'declined_by_staff' => ':dateの出勤依頼は:nameさんの都合にあいませんでした。',
+    ],
+    'must_include_all_weekday' => '月曜日から日曜日までのすべての曜日を含める必要があります。',
+    'overlap_time' => 'ケアプラン時間が重複しています。時間を調整してください。',
+];

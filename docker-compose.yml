@@ -1,0 +1,76 @@
+version: "3"
+services:
+  tb-app:
+    container_name: tb_app
+    build:
+      context: ./docker/php/${ENVIRONMENT:-dev}
+      args:
+        - TZ=${TZ:-Asia/Tokyo}
+    ports:
+      - ${APP_PORT:-8083}:8000
+    volumes:
+      - ${PROJECT_PATH:-./src}:/work/${COMPOSE_PROJECT_NAME}:delegated
+      - ./docker/ash:/etc/profile.d
+      - ./logs/php:/var/log/php
+      - ./logs/supervisord:/var/log/supervisord
+      - ./logs/cron:/var/log/cron
+      - ./docker/php/${ENVIRONMENT:-dev}/php.ini:/usr/local/etc/php/php.ini
+      - ./docker/php/supervisord.conf:/etc/supervisord.conf
+      - ./docker/php/supervisord.d:/etc/supervisord.d
+      - ./docker/php/psysh:/root/.config/psysh
+    working_dir: /work/${COMPOSE_PROJECT_NAME}
+    environment:
+      - TZ=${TZ:-Asia/Tokyo}
+    entrypoint: [/bin/ash, /root/startup.sh]
+    restart: unless-stopped
+    links:
+      - tb-app-db
+
+  tb-app-nginx:
+    container_name: tb_nginx
+    build:
+      context: .
+      dockerfile: docker/nginx/nginx.Dockerfile
+    depends_on:
+      - tb-app
+    ports:
+      - ${WEB_PORT:-8088}:8085
+      - ${WEB_PORT_HTTPS:-8087}:443
+    volumes:
+      - ${PROJECT_PATH:-./src}:/work/${COMPOSE_PROJECT_NAME}:delegated
+      - ./docker:/work/docker
+      - ./logs/nginx:/var/log/nginx
+      - ./docker/nginx/nginx.conf.template:/etc/nginx/conf.d/nginx.conf.template
+    environment:
+      - TZ=${TZ:-Asia/Tokyo}
+      - COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME}
+      - WEB_HTTPS_DOMAIN=${WEB_HTTPS_DOMAIN}
+    command: /bin/bash /work/docker/nginx/command.sh
+    restart: unless-stopped
+    working_dir: /work/${COMPOSE_PROJECT_NAME}
+
+  tb-app-db:
+    container_name: tb_db
+    image: mysql:8.0
+    volumes:
+      - db_store:/var/lib/mysql
+      - ./logs/mysql:/var/log/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      - MYSQL_DATABASE=${DB_NAME:-homestead}
+      - MYSQL_USER=${DB_USERNAME:-homestead}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-secret}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-secret}
+      - TZ=${TZ:-Asia/Tokyo}
+    restart: unless-stopped
+    ports:
+      - ${DB_PORT:-33062}:3306
+
+
+volumes:
+  db_store:
+    driver: local
+
+networks:
+  default:
+    driver: bridge

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Path to PHP-CS-Fixer
+FIXER="./src/vendor/bin/php-cs-fixer"
+CONFIG="./src/.php-cs-fixer.dist.php"
+
+# Get PHP files which were staged
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.php$')
+
+if [ -z "$FILES" ]; then
+  exit 0
+fi
+
+echo "⏳ Running PHP-CS-Fixer..."
+
+# Run PHP-CS-Fixer for each file
+for FILE in $FILES; do
+  $FIXER fix --config="$CONFIG" "$FILE" --quiet
+  git add "$FILE"
+done
+
+echo "✅ PHP-CS-Fixer done. Files updated and re-staged."
+
+exit 0

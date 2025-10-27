@@ -1,0 +1,70 @@
+name: PHP Code Style Check
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - 'epic/**'
+      - 'feat/**'
+      - 'feature/**'
+      - 'fix/**'
+      - 'hotfix/**'
+
+jobs:
+  phpcs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for accurate diff
+          
+      - run: git fetch origin ${{ github.base_ref }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ vars.PHP_VERSION || '8.3' }}
+          coverage: none
+
+      - name: Install dependencies
+        working-directory: src
+        run: composer install --no-progress --no-interaction --prefer-dist
+
+      - name: Install reviewdog
+        uses: reviewdog/action-setup@e04ffabe3898a0af8d0fb1af00c188831c4b5893
+        with:
+          reviewdog_version: ${{ vars.REVIEW_DOG_VERSION }}
+
+      - name: Get changed PHP files
+        id: files
+        run: |
+          FILES=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.sha }} | grep '\.php$' || true)
+          FILES_JSON=$(echo "$FILES" | jq -R -s -c 'split("\n")[:-1]')
+          echo "files=$FILES_JSON" >> $GITHUB_OUTPUT
+
+      - name: Run PHPCS
+        if: steps.files.outputs.files != ''
+        working-directory: src
+        run: |
+          echo "Checking PHP files:"
+          echo '${{ steps.files.outputs.files }}'
+          FILES=$(echo '${{ steps.files.outputs.files }}' | jq -r '.[]' | sed 's#^src/##')
+          ./vendor/bin/phpcs $FILES \
+            --report=checkstyle \
+            --report-file=phpcs-report.xml \
+            --standard=phpcs.xml \
+            -q || true
+
+      - name: Run reviewdog
+        if: steps.files.outputs.files != ''
+        working-directory: src
+        run: |
+          reviewdog -f=checkstyle \
+            -name="${{ vars.REVIEW_DOG_TOOL_NAME }}" \
+            -reporter=${{ vars.REVIEW_DOG_REPORTER }} \
+            -log-level=${{ vars.REVIEW_DOG_LOG_LEVEL }} \
+            -fail-level=${{ vars.REVIEW_DOG_FAIL_LEVEL }} \
+            < phpcs-report.xml
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
